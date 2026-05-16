@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../../AWE-automation-workflow-engine"
+		},
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../AWE-self-host"
+		},
+		{
+			"path": "../../../FE"
+		}
+	]
+}

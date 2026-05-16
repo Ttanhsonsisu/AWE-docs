@@ -1,0 +1,8 @@
+{
+  "label": "AWE Platform",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Tai lieu su dung AWE, built-in plugins va huong dan phat trien plugin bang AWE.Sdk."
+  }
+}
