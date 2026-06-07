@@ -1,51 +1,51 @@
 ---
 sidebar_position: 1
-title: Tong quan AWE
-description: Tong quan ve Automation Workflow Engine, plugin catalog va cach frontend lam viec voi backend.
+title: Tổng quan AWE
+description: Tổng quan về Automation Workflow Engine, plugin catalog và cách frontend làm việc với backend.
 ---
 
-# Tong quan AWE
+# Tổng quan AWE
 
-AWE (Automation Workflow Engine) la nen tang thiet ke va chay workflow theo mo hinh node-based. Moi node tren canvas tuong ung voi mot plugin. Workflow duoc tao tren frontend, luu thanh definition, sau do backend engine dieu phoi tung buoc thuc thi theo transition.
+AWE (Automation Workflow Engine) là nền tảng thiết kế và chạy workflow theo mô hình node-based. Mỗi node trên canvas tương ứng với một plugin. Workflow được tạo trên frontend, lưu thành definition, sau đó backend engine điều phối từng bước thực thi theo transition.
 
-## Cac thanh phan chinh
+## Các thành phần chính
 
-| Thanh phan | Vai tro |
+| Thành phần | Vai trò |
 | --- | --- |
-| FE | Giao dien quan ly workflow, canvas keo-tha node, cau hinh input bang JSON Schema va quan ly plugin package. |
-| AWE.ApiGateway | API cho workflow, execution, approval, webhook va plugin management. |
-| AWE.WorkflowEngine | Runtime dieu phoi workflow, dang ky built-in plugins, scheduler, recovery, join barrier, compensation va signal realtime. |
-| AWE.Sdk | Contract de implement plugin, gom `IWorkflowPlugin`, `ITriggerPlugin`, `PluginContext`, `PluginResult` va `WorkflowPluginBase`. |
-| AWE.Infrastructure | Persistence, MinIO storage, plugin upload/validation/loading va repository implementation. |
-| Worker | Xu ly message tu queue va goi engine/plugin theo lenh dispatch. |
+| FE | Giao diện quản lý workflow, canvas kéo-thả node, cấu hình input bằng JSON Schema và quản lý plugin package. |
+| AWE.ApiGateway | API cho workflow, execution, approval, webhook và plugin management. |
+| AWE.WorkflowEngine | Runtime điều phối workflow, đăng ký built-in plugins, scheduler, recovery, join barrier, compensation và signal realtime. |
+| AWE.Sdk | Contract để implement plugin, gồm `IWorkflowPlugin`, `ITriggerPlugin`, `PluginContext`, `PluginResult` và `WorkflowPluginBase`. |
+| AWE.Infrastructure | Persistence, MinIO storage, plugin upload/validation/loading và repository implementation. |
+| Worker | Xử lý message từ queue và gọi engine/plugin theo lệnh dispatch. |
 
 ## Plugin trong AWE
 
-AWE ho tro 3 execution mode:
+AWE hỗ trợ 3 execution mode:
 
-| Mode | Gia tri enum | Mo ta |
+| Mode | Giá trị enum | Mô tả |
 | --- | ---: | --- |
-| `BuiltIn` | `0` | Plugin duoc dang ky san trong `AWE.WorkflowEngine`. Khong can upload DLL. |
-| `DynamicDll` | `1` | Plugin ben ngoai build thanh `.dll`, upload vao package, validate schema, luu version va load luc runtime. |
-| `RemoteGrpc` | `2` | Du phong cho plugin chay ngoai process qua gRPC. Source hien tai moi khai bao enum va FE type, chua co runtime hoan chinh. |
+| `BuiltIn` | `0` | Plugin được đăng ký sẵn trong `AWE.WorkflowEngine`. Không cần upload DLL. |
+| `DynamicDll` | `1` | Plugin bên ngoài build thành `.dll`, upload vào package, validate schema, lưu version và load lúc runtime. |
+| `RemoteGrpc` | `2` | Dự phòng cho plugin chạy ngoài process qua gRPC. Source hiện tại mới khai báo enum và FE type, chưa có runtime hoàn chỉnh. |
 
-Frontend lay danh sach plugin qua `GET /api/plugins/catalog`. Backend gom built-in plugins tu `PluginRegistry` va custom package dang active, tra ve theo category. Moi plugin tra ve metadata, input schema, output schema, trigger source va thong tin singleton neu la trigger.
+Frontend lấy danh sách plugin qua `GET /api/plugins/catalog`. Backend gom built-in plugins từ `PluginRegistry` và custom package đang active, trả về theo category. Mỗi plugin trả về metadata, input schema, output schema, trigger source và thông tin singleton nếu là trigger.
 
-## Vong doi workflow
+## Vòng đời workflow
 
-1. Nguoi dung tao workflow tren FE.
-2. FE lay plugin catalog, hien thi node library theo category.
-3. Khi them node, FE luu metadata cua plugin vao node data.
-4. Khi cau hinh node, FE dung `inputSchema` de render form bang React JSON Schema Form.
-5. Khi publish/import/update workflow, backend luu `DefinitionJson`.
-6. Khi run workflow, engine tao workflow instance va execution pointer.
-7. Worker nhan job, engine resolve input, chay plugin, ghi log, dispatch node tiep theo.
-8. Neu plugin tra `PluginResult.Suspend(...)`, pointer tam dung de cho approval/delay/resume.
-9. Neu plugin loi va co retry, engine thu lai theo cau hinh `MaxRetries`; neu workflow can rollback, engine goi `CompensateAsync`.
+1. Người dùng tạo workflow trên FE.
+2. FE lấy plugin catalog, hiển thị node library theo category.
+3. Khi thêm node, FE lưu metadata của plugin vào node data.
+4. Khi cấu hình node, FE dùng `inputSchema` để render form bằng React JSON Schema Form.
+5. Khi publish/import/update workflow, backend lưu `DefinitionJson`.
+6. Khi run workflow, engine tạo workflow instance và execution pointer.
+7. Worker nhận job, engine resolve input, chạy plugin, ghi log, dispatch node tiếp theo.
+8. Nếu plugin trả `PluginResult.Suspend(...)`, pointer tạm dừng để chờ approval/delay/resume.
+9. Nếu plugin lỗi và có retry, engine thử lại theo cấu hình `MaxRetries`; nếu workflow cần rollback, engine gọi `CompensateAsync`.
 
-## Dinh dang definition co ban
+## Định dạng definition cơ bản
 
-Definition runtime lam viec voi `Steps` va `Transitions`.
+Definition runtime làm việc với `Steps` và `Transitions`.
 
 ```json
 {
@@ -77,14 +77,14 @@ Definition runtime lam viec voi `Steps` va `Transitions`.
 }
 ```
 
-FE co the hydrate definition thieu `UiJson` thanh node/edge React Flow bang catalog hien tai. Truong `Type` phai khop voi `IWorkflowPlugin.Name`.
+FE có thể hydrate definition thiếu `UiJson` thành node/edge React Flow bằng catalog hiện tại. Trường `Type` phải khớp với `IWorkflowPlugin.Name`.
 
-## Input, output va expression
+## Input, output và expression
 
-Input node duoc luu trong `Inputs`. Engine resolve bien truoc khi goi plugin, vi vay plugin nen doc input da resolve qua `PluginContext.Get<T>("FieldName")` hoac deserialize payload thanh input class.
+Input node được lưu trong `Inputs`. Engine resolve biến trước khi gọi plugin, vì vậy plugin nên đọc input đã resolve qua `PluginContext.Get<T>("FieldName")` hoặc deserialize payload thành input class.
 
-Output cua plugin duoc tra qua `PluginResult.Success(outputs)`. Cac buoc sau co the tham chieu output cua buoc truoc thong qua co che mapping/expression tren FE va resolver cua engine.
+Output của plugin được trả qua `PluginResult.Success(outputs)`. Các bước sau có thể tham chiếu output của bước trước thông qua cơ chế mapping/expression trên FE và resolver của engine.
 
-## Realtime va monitoring
+## Realtime và monitoring
 
-Runtime ghi execution log, status pointer va workflow instance. FE có các panel execution/log và SignalR hook để cập nhật trạng thái node khi workflow đang chạy.
+Runtime ghi execution log, status pointer và workflow instance. FE có các panel execution/log và SignalR hook để cập nhật trạng thái node khi workflow đang chạy.

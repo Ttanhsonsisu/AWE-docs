@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 title: Hướng dẫn sử dụng
 description: Hướng dẫn tạo, cấu hình, publish và chạy workflow trong AWE.
 ---

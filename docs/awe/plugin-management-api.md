@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 title: Plugin Management API
 description: API quản lý catalog, package, version và detail schema plugin.
 ---

@@ -69,6 +69,7 @@ const config: Config = {
           label: 'Documentation',
         },
         {to: '/docs/awe/overview', label: 'AWE Platform', position: 'left'},
+        {to: '/docs/awe/self-host', label: 'Self-host', position: 'left'},
         {to: '/docs/awe/builtin-plugins', label: 'Plugins', position: 'left'},
         // {to: '/blog', label: 'Updates', position: 'left'},
         {
@@ -92,6 +93,7 @@ const config: Config = {
         {
           title: 'Runtime',
           items: [
+            {label: 'Self-host', to: '/docs/awe/self-host'},
             {label: 'Usage Guide', to: '/docs/awe/user-guide'},
             {label: 'Plugin API', to: '/docs/awe/plugin-management-api'},
           ],

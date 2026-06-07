@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 title: Implement plugin bằng AWE.Sdk
 description: Hướng dẫn tạo, build, validate và upload Dynamic DLL plugin bằng AWE.Sdk.v2.
 ---

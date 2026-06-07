@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 title: Built-in Plugins
 description: Tài liệu các plugin mặc định được đăng ký trong AWE.WorkflowEngine.
 ---
