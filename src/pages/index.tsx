@@ -34,11 +34,11 @@ export default function Home(): ReactNode {
             <div className={styles.heroCopy}>
               <div className={styles.eyebrow}>Automation Workflow Engine</div>
               <Heading as="h1" className={styles.title}>
-                AWE Documentation
+                AWE Document
               </Heading>
               <p className={styles.subtitle}>
-                Tai lieu su dung workflow engine, built-in plugins, plugin
-                management API va cach phat trien plugin bang AWE.Sdk.
+                Tài liệu sử dụng workflow engine, built-in plugins, plugin
+                management API và cách phát triển plugin bằng AWE.Sdk.
               </p>
               <div className={styles.actions}>
                 <Link className={styles.primaryAction} to="/docs/awe/overview">
