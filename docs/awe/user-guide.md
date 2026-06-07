@@ -1,113 +1,113 @@
 ---
 sidebar_position: 2
-title: Huong dan su dung
-description: Huong dan tao, cau hinh, publish va chay workflow trong AWE.
+title: Hướng dẫn sử dụng
+description: Hướng dẫn tạo, cấu hình, publish và chạy workflow trong AWE.
 ---
 
-# Huong dan su dung
+# Hướng dẫn sử dụng
 
-Tai lieu nay mo ta luong su dung AWE tu goc nhin nguoi dung frontend.
+Tài liệu này mô tả luồng sử dụng AWE từ góc nhìn người dùng frontend.
 
-## 1. Mo danh sach workflow
+## 1. Mở danh sách workflow
 
-Vao man hinh **Workflows** de xem cac workflow definition hien co. Tai day co the:
+Vào màn hình **Workflows** để xem các workflow definition hiện có. Tại đây có thể:
 
-- Tao workflow moi.
-- Mo canvas de chinh sua.
-- Publish hoac unpublish definition.
+- Tạo workflow mới.
+- Mở canvas để chỉnh sửa.
+- Publish hoặc unpublish definition.
 - Run workflow.
-- Clone, import, export hoac xoa workflow.
+- Clone, import, export hoặc xóa workflow.
 
-## 2. Tao workflow
+## 2. Tạo workflow
 
-1. Chon **Create Workflow**.
-2. Nhap ten workflow.
-3. Mo workflow vua tao de vao canvas editor.
+1. Chọn **Create Workflow**.
+2. Nhập tên workflow.
+3. Mở workflow vừa tạo để vào canvas editor.
 
-Canvas su dung node-based editor. Moi node dai dien cho mot plugin trong catalog.
+Canvas sử dụng node-based editor. Mỗi node đại diện cho một plugin trong catalog.
 
-## 3. Them node tu plugin catalog
+## 3. Thêm node từ plugin catalog
 
-Node library duoc lay tu API `GET /api/plugins/catalog` va chia theo category, vi du:
+Node library được lấy từ API `GET /api/plugins/catalog` và chia theo category, ví dụ:
 
 - `Trigger`
 - `Core`
 - `Logic`
 - `Human Interaction`
 - `Testing`
-- custom categories tu Dynamic DLL plugins
+- custom categories từ Dynamic DLL plugins
 
-Khi keo plugin vao canvas, FE luu cac metadata quan trong vao node:
+Khi kéo plugin vào canvas, FE lưu các metadata quan trọng vào node:
 
-| Metadata | Y nghia |
+| Metadata | Ý nghĩa |
 | --- | --- |
-| `name` | Ten ky thuat cua plugin, phai khop `IWorkflowPlugin.Name`. |
-| `displayName` | Ten hien thi tren UI. |
-| `category` | Nhom plugin. |
-| `executionMode` | `BuiltIn`, `DynamicDll` hoac `RemoteGrpc`. |
-| `packageId` | Co gia tri voi custom package, `null` voi built-in. |
-| `version` | Version active cua plugin package. |
-| `inputSchema` | JSON Schema de render form cau hinh input. |
-| `outputSchema` | JSON Schema de mapping output. |
-| `triggerSource` | Ap dung cho trigger plugin. |
-| `isSingleton` | Trigger co duoc phep lap lai trong workflow hay khong. |
+| `name` | Tên kỹ thuật của plugin, phải khớp `IWorkflowPlugin.Name`. |
+| `displayName` | Tên hiển thị trên UI. |
+| `category` | Nhóm plugin. |
+| `executionMode` | `BuiltIn`, `DynamicDll` hoặc `RemoteGrpc`. |
+| `packageId` | Có giá trị với custom package, `null` với built-in. |
+| `version` | Version active của plugin package. |
+| `inputSchema` | JSON Schema để render form cấu hình input. |
+| `outputSchema` | JSON Schema để mapping output. |
+| `triggerSource` | Áp dụng cho trigger plugin. |
+| `isSingleton` | Trigger có được phép lặp lại trong workflow hay không. |
 
-## 4. Cau hinh node
+## 4. Cấu hình node
 
-Click node de mo panel cau hinh.
+Click node để mở panel cấu hình.
 
-### Thong tin chung
+### Thông tin chung
 
-| Truong | Mo ta |
+| Trường | Mô tả |
 | --- | --- |
-| Step ID | Dinh danh buoc trong definition. Nen ngan gon, khong chua khoang trang. |
-| Ten hien thi | Label hien tren canvas va log. |
+| Step ID | Định danh bước trong definition. Nên ngắn gọn, không chứa khoảng trắng. |
+| Tên hiển thị | Label hiện trên canvas và log. |
 
-### Tham so dau vao
+### Tham số đầu vào
 
-FE render form tu `inputSchema` bang React JSON Schema Form. Backend sinh schema tu `InputType` cua plugin.
+FE render form từ `inputSchema` bằng React JSON Schema Form. Backend sinh schema từ `InputType` của plugin.
 
-Cac kieu field thuong gap:
+Các kiểu field thường gặp:
 
-| C# type | UI mac dinh |
+| C# type | UI mặc định |
 | --- | --- |
-| `string` | Text input hoac textarea neu field dai. |
+| `string` | Text input hoặc textarea nếu field dài. |
 | `int`, `double`, `decimal` | Number input. |
 | `bool` | Switch. |
 | `enum` | Select. |
 | `List<T>` | Array editor. |
 | object class | Nested object group. |
 
-Plugin co the them metadata UI bang `[UiField]`, vi du:
+Plugin có thể thêm metadata UI bằng `[UiField]`, ví dụ:
 
 ```csharp
 [UiField(
     Widget = "select",
-    Label = "Mui gio",
+    Label = "Múi giờ",
     DataSourceUrl = "/dropdown/timezones"
 )]
 public string? TimeZoneId { get; set; }
 ```
 
-FE doc cac extension `x-*` sau:
+FE đọc các extension `x-*` sau:
 
-| Extension | Tac dung |
+| Extension | Tác dụng |
 | --- | --- |
-| `x-widget` | Chon widget, hien co ho tro `select`, `textarea` va dynamic select. |
-| `x-label` | Doi label field tren form. |
-| `x-data-source-url` | Goi API dropdown de nap option. |
-| `x-show-if` | Metadata dieu kien hien thi, de mo rong UI conditional. |
-| `x-group` | Metadata nhom field. |
+| `x-widget` | Chọn widget, hiện có hỗ trợ `select`, `textarea` và dynamic select. |
+| `x-label` | Đổi label field trên form. |
+| `x-data-source-url` | Gọi API dropdown để nạp option. |
+| `x-show-if` | Metadata điều kiện hiển thị, để mở rộng UI conditional. |
+| `x-group` | Metadata nhóm field. |
 
-### Cau hinh retry
+### Cấu hình retry
 
-Trong panel nang cao, bat retry va nhap `MaxRetries` neu node co the gap loi tam thoi. Khi plugin throw exception hoac tra failure, engine co the retry theo so lan da cau hinh.
+Trong panel nâng cao, bật retry và nhập `MaxRetries` nếu node có thể gặp lỗi tạm thời. Khi plugin throw exception hoặc trả failure, engine có thể retry theo số lần đã cấu hình.
 
-## 5. Ket noi node
+## 5. Kết nối node
 
-Noi edge tu source node sang target node. Backend luu cac edge nay thanh `Transitions`.
+Nối edge từ source node sang target node. Backend lưu các edge này thành `Transitions`.
 
-Transition co ban:
+Transition cơ bản:
 
 ```json
 {
@@ -116,50 +116,50 @@ Transition co ban:
 }
 ```
 
-Voi node `If`, output `IsMatch` duoc dung de ranh nhanh theo dieu kien. Phan transition evaluator cua engine quyet dinh nhanh nao duoc di tiep theo definition.
+Với node `If`, output `IsMatch` được dùng để rẽ nhánh theo điều kiện. Phần transition evaluator của engine quyết định nhánh nào được đi tiếp theo definition.
 
 ## 6. Publish workflow
 
-Sau khi cau hinh node va transitions, publish workflow de dua definition vao trang thai co the chay.
+Sau khi cấu hình node và transitions, publish workflow để đưa definition vào trạng thái có thể chạy.
 
-Khi publish, cac trigger dac biet co the duoc dong bo:
+Khi publish, các trigger đặc biệt có thể được đồng bộ:
 
-- `CronTrigger`: tao/cap nhat lich Quartz.
-- `WebhookTrigger`: tao/cap nhat route webhook.
+- `CronTrigger`: tạo/cập nhật lịch Quartz.
+- `WebhookTrigger`: tạo/cập nhật route webhook.
 
-## 7. Run workflow thu cong
+## 7. Run workflow thủ công
 
-Voi workflow bat dau bang `ManualTrigger`, chon **Run Workflow** tu danh sach workflow.
+Với workflow bắt đầu bằng `ManualTrigger`, chọn **Run Workflow** từ danh sách workflow.
 
-Payload khoi chay duoc truyen vao trigger. `ManualTrigger` pass-through payload nay thanh output cua buoc dau tien, de cac buoc sau co the su dung.
+Payload khởi chạy được truyền vào trigger. `ManualTrigger` pass-through payload này thành output của bước đầu tiên, để các bước sau có thể sử dụng.
 
-Vi du payload:
+Ví dụ payload:
 
 ```json
 {
-  "customerName": "Nguyen Van A",
+  "customerName": "Nguyễn Văn A",
   "orderId": "ORD-001"
 }
 ```
 
-## 8. Theo doi execution
+## 8. Theo dõi execution
 
-Sau khi run, FE chuyen sang execution mode va lang nghe realtime update. Nguoi dung co the xem:
+Sau khi run, FE chuyển sang execution mode và lắng nghe realtime update. Người dùng có thể xem:
 
-- Trang thai workflow instance.
-- Log tung node.
-- Input/output cua pointer.
-- Loi va retry attempt.
-- Trang thai suspended voi approval/delay.
+- Trạng thái workflow instance.
+- Log từng node.
+- Input/output của pointer.
+- Lỗi và retry attempt.
+- Trạng thái suspended với approval/delay.
 
-## 9. Quan ly plugin package
+## 9. Quản lý plugin package
 
-Vao man hinh **Plugins** de:
+Vào màn hình **Plugins** để:
 
-- Xem built-in plugins va custom packages.
-- Tao package moi cho custom plugin.
+- Xem built-in plugins và custom packages.
+- Tạo package mới cho custom plugin.
 - Upload version `.dll`.
 - Activate/deactivate version.
 - Xem detail schema input/output.
 
-Built-in plugins khong co `packageId`, khong upload version va khong toggle enable theo package.
+Built-in plugins không có `packageId`, không upload version và không toggle enable theo package.

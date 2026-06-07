@@ -1,16 +1,16 @@
 ---
 sidebar_position: 4
-title: Implement plugin bang AWE.Sdk
-description: Huong dan tao, build, validate va upload Dynamic DLL plugin bang AWE.Sdk.v2.
+title: Implement plugin bằng AWE.Sdk
+description: Hướng dẫn tạo, build, validate và upload Dynamic DLL plugin bằng AWE.Sdk.v2.
 ---
 
-# Implement plugin bang AWE.Sdk
+# Implement plugin bằng AWE.Sdk
 
-AWE.Sdk la contract giua engine va plugin. Source hien tai su dung namespace `AWE.Sdk.v2`; cac file `AWE.Sdk/IWorkflowPlugin.cs`, `PluginContext.cs`, `PluginResult.cs` o root dang bi comment va khong phai API chinh.
+AWE.Sdk là contract giữa engine và plugin. Source hiện tại sử dụng namespace `AWE.Sdk.v2`; các file `AWE.Sdk/IWorkflowPlugin.cs`, `PluginContext.cs`, `PluginResult.cs` ở root đang bị comment và không phải API chính.
 
-## Yeu cau project plugin
+## Yêu cầu project plugin
 
-Plugin nen la project `.NET` class library target `net10.0`, tham chieu `AWE.Sdk`.
+Plugin nên là project `.NET` class library target `net10.0`, tham chiếu `AWE.Sdk`.
 
 ```xml title="MyPlugin.csproj"
 <Project Sdk="Microsoft.NET.Sdk">
@@ -26,7 +26,7 @@ Plugin nen la project `.NET` class library target `net10.0`, tham chieu `AWE.Sdk
 </Project>
 ```
 
-Neu plugin nam ngoai solution, co the tham chieu den DLL/nuget SDK tu pipeline phat hanh noi bo. Quan trong la assembly runtime phai load duoc cung contract `AWE.Sdk.v2.IWorkflowPlugin`.
+Nếu plugin nằm ngoài solution, có thể tham chiếu đến DLL/NuGet SDK từ pipeline phát hành nội bộ. Quan trọng là assembly runtime phải load được cùng contract `AWE.Sdk.v2.IWorkflowPlugin`.
 
 ## Contract `IWorkflowPlugin`
 
@@ -49,31 +49,31 @@ public interface IWorkflowPlugin
 }
 ```
 
-| Member | Bat buoc | Mo ta |
+| Member | Bắt buộc | Mô tả |
 | --- | --- | --- |
-| `Name` | Co | Dinh danh ky thuat. Phai on dinh giua cac version neu workflow dang dung plugin nay. |
-| `DisplayName` | Co | Ten hien thi tren FE. |
-| `Description` | Co | Mo ta ngan cho catalog/node library. |
-| `Category` | Co | Nhom plugin tren FE, vi du `Data Manipulation`, `Integration`, `API`. |
-| `Icon` | Co | Ten icon lucide, vi du `lucide-type`, `lucide-send`, `lucide-box`. |
-| `InputType` | Khuyen dung | Class input de backend sinh JSON Schema. Tra `null` neu input dong. |
-| `OutputType` | Khuyen dung | Class output de backend sinh JSON Schema. Tra `null` neu khong co output co cau truc. |
-| `ExecuteAsync` | Co | Logic chinh cua plugin. |
-| `CompensateAsync` | Co | Logic rollback/cleanup. Tra success neu khong co gi de rollback. |
+| `Name` | Có | Định danh kỹ thuật. Phải ổn định giữa các version nếu workflow đang dùng plugin này. |
+| `DisplayName` | Có | Tên hiển thị trên FE. |
+| `Description` | Có | Mô tả ngắn cho catalog/node library. |
+| `Category` | Có | Nhóm plugin trên FE, ví dụ `Data Manipulation`, `Integration`, `API`. |
+| `Icon` | Có | Tên icon Lucide, ví dụ `lucide-type`, `lucide-send`, `lucide-box`. |
+| `InputType` | Khuyên dùng | Class input để backend sinh JSON Schema. Trả `null` nếu input động. |
+| `OutputType` | Khuyên dùng | Class output để backend sinh JSON Schema. Trả `null` nếu không có output có cấu trúc. |
+| `ExecuteAsync` | Có | Logic chính của plugin. |
+| `CompensateAsync` | Có | Logic rollback/cleanup. Trả success nếu không có gì để rollback. |
 
 ## `PluginContext`
 
-`PluginContext` gom:
+`PluginContext` gồm:
 
-| Member | Mo ta |
+| Member | Mô tả |
 | --- | --- |
-| `Payload` | Chuoi JSON goc duoc engine truyen vao plugin. |
-| `Root` | `JsonElement` root da clone. |
-| `CancellationToken` | Token huy tu runtime. |
-| `Get<T>(key)` | Lay field theo ten, khong phan biet hoa thuong. Neu deserialize loi, tra default. |
-| `GetRaw(key)` | Lay `JsonElement` raw. |
+| `Payload` | Chuỗi JSON gốc được engine truyền vào plugin. |
+| `Root` | `JsonElement` root đã clone. |
+| `CancellationToken` | Token hủy từ runtime. |
+| `Get<T>(key)` | Lấy field theo tên, không phân biệt hoa thường. Nếu deserialize lỗi, trả default. |
+| `GetRaw(key)` | Lấy `JsonElement` raw. |
 
-Vi du:
+Ví dụ:
 
 ```csharp
 var text = context.Get<string>("Text");
@@ -82,21 +82,21 @@ var count = context.Get<int?>("Count") ?? 0;
 
 ## `PluginResult`
 
-Plugin tra ket qua qua factory method:
+Plugin trả kết quả qua factory method:
 
 ```csharp
 return PluginResult.Success(new { Result = "OK" });
 return PluginResult.Failure("Input Text is required.");
-return PluginResult.Suspend("Dang cho phe duyet...");
+return PluginResult.Suspend("Đang chờ phê duyệt...");
 ```
 
-| Ket qua | Engine hieu la |
+| Kết quả | Engine hiểu là |
 | --- | --- |
-| `Success(outputs)` | Node thanh cong, luu output va dispatch transition tiep theo. |
-| `Failure(message)` | Node loi, runtime co the retry hoac mark failed. |
-| `Suspend(message)` | Node tam dung. Workflow cho event/resume ben ngoai. |
+| `Success(outputs)` | Node thành công, lưu output và dispatch transition tiếp theo. |
+| `Failure(message)` | Node lỗi, runtime có thể retry hoặc mark failed. |
+| `Suspend(message)` | Node tạm dừng. Workflow chờ event/resume bên ngoài. |
 
-## Cach 1: Implement truc tiep `IWorkflowPlugin`
+## Cách 1: Implement trực tiếp `IWorkflowPlugin`
 
 ```csharp title="TextProcessorPlugin.cs"
 using System.Text.Json.Serialization;
@@ -127,8 +127,8 @@ public class TextProcessorOutput
 public class TextProcessorPlugin : IWorkflowPlugin
 {
     public string Name => "AWE.Samples.TextProcessor";
-    public string DisplayName => "Xu ly Van ban";
-    public string Description => "Bien doi chuoi dau vao.";
+    public string DisplayName => "Xử lý Văn bản";
+    public string Description => "Biến đổi chuỗi đầu vào.";
     public string Category => "Data Manipulation";
     public string Icon => "lucide-type";
 
@@ -164,11 +164,11 @@ public class TextProcessorPlugin : IWorkflowPlugin
 }
 ```
 
-Cach nay linh hoat nhat. Ban tu doc `PluginContext` va tu validate input.
+Cách này linh hoạt nhất. Bạn tự đọc `PluginContext` và tự validate input.
 
-## Cach 2: Ke thua `WorkflowPluginBase<TInput, TOutput>`
+## Cách 2: Kế thừa `WorkflowPluginBase<TInput, TOutput>`
 
-`WorkflowPluginBase` tu deserialize `context.Payload` thanh `TInput`, chay DataAnnotations validation va goi `ExecuteLogicAsync`.
+`WorkflowPluginBase` tự deserialize `context.Payload` thành `TInput`, chạy DataAnnotations validation và gọi `ExecuteLogicAsync`.
 
 ```csharp title="SendTelegramPlugin.cs"
 using System.ComponentModel.DataAnnotations;
@@ -195,7 +195,7 @@ public class SendTelegramPlugin : WorkflowPluginBase<SendTelegramInput, SendTele
 {
     public override string Name => "AWE.Integration.SendTelegram";
     public override string DisplayName => "Send Telegram";
-    public override string Description => "Gui tin nhan Telegram.";
+    public override string Description => "Gửi tin nhắn Telegram.";
     public override string Category => "Integration";
     public override string Icon => "lucide-send";
 
@@ -203,27 +203,27 @@ public class SendTelegramPlugin : WorkflowPluginBase<SendTelegramInput, SendTele
         SendTelegramInput input,
         CancellationToken ct)
     {
-        // Goi API Telegram tai day.
+        // Gọi API Telegram tại đây.
         return Task.FromResult(new SendTelegramOutput { Status = "Sent" });
     }
 }
 ```
 
-Cach nay phu hop voi plugin input/output co cau truc ro rang. Loi parse JSON, loi validation va exception trong logic se duoc convert thanh `PluginResult.Failure(...)`.
+Cách này phù hợp với plugin input/output có cấu trúc rõ ràng. Lỗi parse JSON, lỗi validation và exception trong logic sẽ được convert thành `PluginResult.Failure(...)`.
 
-## Tao schema cho FE
+## Tạo schema cho FE
 
-Backend dung `PluginSchemaGenerator.GenerateSchema(InputType)` va `OutputType` de tao JSON Schema OpenAPI 3. FE dung schema nay de render form.
+Backend dùng `PluginSchemaGenerator.GenerateSchema(InputType)` và `OutputType` để tạo JSON Schema OpenAPI 3. FE dùng schema này để render form.
 
-Nen lam:
+Nên làm:
 
-- Dat property PascalCase ro rang, vi FE va `PluginContext.Get<T>` ho tro case-insensitive.
-- Dung nullable reference type de the hien field co the rong.
-- Dung DataAnnotations nhu `[Required]`, `[Range]`, `[StringLength]` neu dung `WorkflowPluginBase`.
-- Dung enum cho select co danh sach co dinh.
-- Dung `[UiField]` khi can widget dac biet.
+- Đặt property PascalCase rõ ràng, vì FE và `PluginContext.Get<T>` hỗ trợ case-insensitive.
+- Dùng nullable reference type để thể hiện field có thể rỗng.
+- Dùng DataAnnotations như `[Required]`, `[Range]`, `[StringLength]` nếu dùng `WorkflowPluginBase`.
+- Dùng enum cho select có danh sách cố định.
+- Dùng `[UiField]` khi cần widget đặc biệt.
 
-Vi du input co dropdown dong:
+Ví dụ input có dropdown động:
 
 ```csharp
 using AWE.Sdk.v2.Attributes;
@@ -234,7 +234,7 @@ public class CronLikeInput
 
     [UiField(
         Widget = "select",
-        Label = "Mui gio",
+        Label = "Múi giờ",
         DataSourceUrl = "/dropdown/timezones"
     )]
     public string? TimeZoneId { get; set; }
@@ -249,30 +249,30 @@ Build release:
 dotnet build .\MyPlugin.csproj -c Release
 ```
 
-DLL output thuong nam tai:
+DLL output thường nằm tại:
 
 ```text
 bin/Release/net10.0/MyPlugin.dll
 ```
 
-Chi upload DLL plugin chinh. Neu plugin co dependency rieng, runtime hien tai can dam bao dependency do load duoc boi `PluginLoadContext`. Nen han che dependency ngoai hoac dong goi/phat hanh theo chuan loader cua he thong.
+Chỉ upload DLL plugin chính. Nếu plugin có dependency riêng, runtime hiện tại cần đảm bảo dependency đó load được bởi `PluginLoadContext`. Nên hạn chế dependency ngoài hoặc đóng gói/phát hành theo chuẩn loader của hệ thống.
 
-## Validate va upload
+## Validate và upload
 
-Quy trinh tren UI:
+Quy trình trên UI:
 
-1. Vao **Plugins**.
-2. Tao package voi `ExecutionMode = DynamicDll`.
-3. Upload version moi, chon file `.dll`.
+1. Vào **Plugins**.
+2. Tạo package với `ExecutionMode = DynamicDll`.
+3. Upload version mới, chọn file `.dll`.
 4. Backend validate assembly:
-   - File phai la .NET assembly hop le.
-   - Phai co class concrete implement `AWE.Sdk.v2.IWorkflowPlugin`.
-   - Validator trich metadata `Name`, `DisplayName`, `Description`, `Category`, `Icon`.
-   - Validator sinh `InputSchema` va `OutputSchema`.
-5. Backend tinh SHA256, upload DLL len storage, luu `ExecutionMetadata`.
-6. Activate version de catalog co the su dung.
+   - File phải là .NET assembly hợp lệ.
+   - Phải có class concrete implement `AWE.Sdk.v2.IWorkflowPlugin`.
+   - Validator trích metadata `Name`, `DisplayName`, `Description`, `Category`, `Icon`.
+   - Validator sinh `InputSchema` và `OutputSchema`.
+5. Backend tính SHA256, upload DLL lên storage, lưu `ExecutionMetadata`.
+6. Activate version để catalog có thể sử dụng.
 
-API tuong ung:
+API tương ứng:
 
 ```http
 POST /api/plugins/packages
@@ -304,34 +304,34 @@ POST /api/plugins/versions/{versionId}/activate
 
 ## Runtime load custom plugin
 
-Khi Dynamic DLL node chay:
+Khi Dynamic DLL node chạy:
 
-1. Engine lay active version va execution metadata.
-2. Loader tai DLL ve temp path.
-3. Tao `PluginLoadContext` rieng.
-4. Tim class implement `IWorkflowPlugin`.
-5. Tao instance bang `ActivatorUtilities.CreateInstance(...)`, vi vay constructor co the nhan service tu DI neu service do da duoc dang ky trong host.
-6. Tao `PluginContext(payload, ct)`.
-7. Goi `ExecuteAsync` hoac `CompensateAsync`.
-8. Unload context, xoa temp file va goi GC de giam memory leak.
+1. Engine lấy active version và execution metadata.
+2. Loader tải DLL về temp path.
+3. Tạo `PluginLoadContext` riêng.
+4. Tìm class implement `IWorkflowPlugin`.
+5. Tạo instance bằng `ActivatorUtilities.CreateInstance(...)`, vì vậy constructor có thể nhận service từ DI nếu service đó đã được đăng ký trong host.
+6. Tạo `PluginContext(payload, ct)`.
+7. Gọi `ExecuteAsync` hoặc `CompensateAsync`.
+8. Unload context, xóa temp file và gọi GC để giảm memory leak.
 
 ## Best practices
 
-- Giu `Name` bat bien sau khi workflow da duoc publish.
-- Version breaking change nen upload version moi, khong thay the DLL cu.
-- Khong luu mutable static state neu khong bat buoc; neu co, clear trong `CompensateAsync`.
-- Ton trong `CancellationToken`.
-- Khong throw cho loi validation du lieu nguoi dung; tra `PluginResult.Failure(...)`.
-- Chi throw cho loi bat thuong ma runtime retry co the xu ly.
-- Output nen la object co schema ro rang de FE mapping de hon.
-- `CompensateAsync` nen idempotent: goi nhieu lan khong gay loi.
+- Giữ `Name` bất biến sau khi workflow đã được publish.
+- Version breaking change nên upload version mới, không thay thế DLL cũ.
+- Không lưu mutable static state nếu không bắt buộc; nếu có, clear trong `CompensateAsync`.
+- Tôn trọng `CancellationToken`.
+- Không throw cho lỗi validation dữ liệu người dùng; trả `PluginResult.Failure(...)`.
+- Chỉ throw cho lỗi bất thường mà runtime retry có thể xử lý.
+- Output nên là object có schema rõ ràng để FE mapping dễ hơn.
+- `CompensateAsync` nên idempotent: gọi nhiều lần không gây lỗi.
 
-## Loi thuong gap
+## Lỗi thường gặp
 
-| Loi | Nguyen nhan | Cach xu ly |
+| Lỗi | Nguyên nhân | Cách xử lý |
 | --- | --- | --- |
-| `Missing IWorkflowPlugin implementation in DLL` | DLL khong co class implement `AWE.Sdk.v2.IWorkflowPlugin` hoac tham chieu sai SDK. | Kiem tra namespace `AWE.Sdk.v2` va build lai. |
-| `Not a valid .NET assembly` | Upload sai file hoac target/runtime khong tuong thich. | Upload DLL build tu project .NET hop le target `net10.0`. |
-| Schema rong `{}` | `InputType`/`OutputType` tra `null`. | Tra ve `typeof(MyInput)` va `typeof(MyOutput)`. |
-| FE khong hien icon mong muon | Icon string khong co trong mapping FE. | Dung icon lucide da map nhu `lucide-type`, `lucide-send`, `lucide-box`, hoac them mapping FE. |
-| Constructor plugin loi | Service trong constructor chua dang ky DI. | Dang ky service trong host hoac bo dependency khoi constructor. |
+| `Missing IWorkflowPlugin implementation in DLL` | DLL không có class implement `AWE.Sdk.v2.IWorkflowPlugin` hoặc tham chiếu sai SDK. | Kiểm tra namespace `AWE.Sdk.v2` và build lại. |
+| `Not a valid .NET assembly` | Upload sai file hoặc target/runtime không tương thích. | Upload DLL build từ project .NET hợp lệ target `net10.0`. |
+| Schema rỗng `{}` | `InputType`/`OutputType` trả `null`. | Trả về `typeof(MyInput)` và `typeof(MyOutput)`. |
+| FE không hiện icon mong muốn | Icon string không có trong mapping FE. | Dùng icon Lucide đã map như `lucide-type`, `lucide-send`, `lucide-box`, hoặc thêm mapping FE. |
+| Constructor plugin lỗi | Service trong constructor chưa đăng ký DI. | Đăng ký service trong host hoặc bỏ dependency khỏi constructor. |

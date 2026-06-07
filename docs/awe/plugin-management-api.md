@@ -1,12 +1,12 @@
 ---
 sidebar_position: 5
 title: Plugin Management API
-description: API quan ly catalog, package, version va detail schema plugin.
+description: API quản lý catalog, package, version và detail schema plugin.
 ---
 
 # Plugin Management API
 
-API plugin nam duoi prefix `/api/plugins` va yeu cau policy editor. FE hien tai goi qua `apiClient` voi path ngan `/plugins/...`, vi base URL da gan prefix `/api`.
+API plugin nằm dưới prefix `/api/plugins` và yêu cầu policy editor. FE hiện tại gọi qua `apiClient` với path ngắn `/plugins/...`, vì base URL đã gắn prefix `/api`.
 
 ## Catalog
 
@@ -14,7 +14,7 @@ API plugin nam duoi prefix `/api/plugins` va yeu cau policy editor. FE hien tai 
 GET /api/plugins/catalog
 ```
 
-Tra danh sach plugin theo category. Bao gom built-in plugins va custom packages co active version.
+Trả danh sách plugin theo category. Bao gồm built-in plugins và custom packages có active version.
 
 Response shape:
 
@@ -29,8 +29,8 @@ Response shape:
           "packageId": null,
           "activeVersion": "Built-in",
           "name": "Log",
-          "displayName": "Ghi Log He Thong",
-          "description": "In mot thong bao ra Console cua Worker.",
+          "displayName": "Ghi Log Hệ Thống",
+          "description": "In một thông báo ra Console của Worker.",
           "category": "Core",
           "icon": "lucide-terminal",
           "executionMode": "BuiltIn",
@@ -51,17 +51,17 @@ Response shape:
 GET /api/plugins/packages?page=1&size=10&search=&executionMode=&category=
 ```
 
-Ket qua gom built-in plugin va custom package trong cung mot list. Built-in item co `id = null`, `latestVersion = null`, `isBuiltIn = true`.
+Kết quả gồm built-in plugin và custom package trong cùng một list. Built-in item có `id = null`, `latestVersion = null`, `isBuiltIn = true`.
 
 Query:
 
-| Param | Mo ta |
+| Param | Mô tả |
 | --- | --- |
-| `page` | Trang, mac dinh `1`. |
-| `size` | So item moi trang, mac dinh `10`. |
-| `search` | Tim theo `displayName` hoac `uniqueName`. |
-| `executionMode` | Loc theo enum `BuiltIn`, `DynamicDll`, `RemoteGrpc` hoac gia tri enum tu backend. |
-| `category` | Loc category. |
+| `page` | Trang, mặc định `1`. |
+| `size` | Số item mỗi trang, mặc định `10`. |
+| `search` | Tìm theo `displayName` hoặc `uniqueName`. |
+| `executionMode` | Lọc theo enum `BuiltIn`, `DynamicDll`, `RemoteGrpc` hoặc giá trị enum từ backend. |
+| `category` | Lọc category. |
 
 ## Create package
 
@@ -83,7 +83,7 @@ Body:
 }
 ```
 
-`executionMode = 1` la `DynamicDll`. Package `BuiltIn` khong can tao thu cong vi registry tu source code da cung cap.
+`executionMode = 1` là `DynamicDll`. Package `BuiltIn` không cần tạo thủ công vì registry từ source code đã cung cấp.
 
 ## Upload version
 
@@ -94,24 +94,24 @@ Content-Type: multipart/form-data
 
 Form data:
 
-| Key | Bat buoc | Mo ta |
+| Key | Bắt buộc | Mô tả |
 | --- | --- | --- |
-| `Version` | Co | Version string, vi du `1.0.0`. |
-| `Bucket` | Khong | Bucket storage, mac dinh `awe-plugins`. |
-| `ReleaseNotes` | Khong | Ghi chu version. |
-| `File` | Co | DLL file. |
+| `Version` | Có | Version string, ví dụ `1.0.0`. |
+| `Bucket` | Không | Bucket storage, mặc định `awe-plugins`. |
+| `ReleaseNotes` | Không | Ghi chú version. |
+| `File` | Có | DLL file. |
 
-Backend se:
+Backend sẽ:
 
-1. Kiem tra package ton tai va co `ExecutionMode = DynamicDll`.
-2. Validate DLL bang `PluginValidator`.
-3. Trich metadata va schema.
-4. Cap nhat metadata package theo plugin.
-5. Tinh SHA256.
-6. Upload object vao storage voi key `plugins/{uniqueName}/{sha256}.dll`.
-7. Luu `PluginVersion` voi `ExecutionMetadata`.
+1. Kiểm tra package tồn tại và có `ExecutionMode = DynamicDll`.
+2. Validate DLL bằng `PluginValidator`.
+3. Trích metadata và schema.
+4. Cập nhật metadata package theo plugin.
+5. Tính SHA256.
+6. Upload object vào storage với key `plugins/{uniqueName}/{sha256}.dll`.
+7. Lưu `PluginVersion` với `ExecutionMetadata`.
 
-Execution metadata mau:
+Execution metadata mẫu:
 
 ```json
 {
@@ -130,7 +130,7 @@ Execution metadata mau:
 GET /api/plugins/packages/{packageId}/versions
 ```
 
-Tra cac version cua package.
+Trả các version của package.
 
 ## Activate/deactivate version
 
@@ -139,7 +139,7 @@ POST /api/plugins/versions/{versionId}/activate
 POST /api/plugins/versions/{versionId}/deactivate
 ```
 
-Catalog chi lay custom package co active version. Neu co nhieu active version, service hien tai chon version active moi nhat theo `CreatedAt`.
+Catalog chỉ lấy custom package có active version. Nếu có nhiều active version, service hiện tại chọn version active mới nhất theo `CreatedAt`.
 
 ## Download version
 
@@ -147,7 +147,7 @@ Catalog chi lay custom package co active version. Neu co nhieu active version, s
 GET /api/plugins/versions/{versionId}/download
 ```
 
-Tra stream DLL voi content type `application/octet-stream`.
+Trả stream DLL với content type `application/octet-stream`.
 
 ## Delete version
 
@@ -155,7 +155,7 @@ Tra stream DLL voi content type `application/octet-stream`.
 DELETE /api/plugins/versions/{versionId}?deleteObject=true
 ```
 
-Neu `deleteObject = true`, backend co gang xoa file trong storage truoc khi xoa DB record.
+Nếu `deleteObject = true`, backend cố gắng xóa file trong storage trước khi xóa DB record.
 
 ## Get plugin detail
 
@@ -177,7 +177,7 @@ Dynamic DLL theo SHA256:
 GET /api/plugins/details/by-sha256/{sha256}
 ```
 
-FE dung detail API khi mo panel cau hinh node, dac biet voi Dynamic DLL node. Lookup theo SHA256 giup load dung schema cua DLL da duoc compile vao workflow, ngay ca khi active version da thay doi.
+FE dùng detail API khi mở panel cấu hình node, đặc biệt với Dynamic DLL node. Lookup theo SHA256 giúp load đúng schema của DLL đã được compile vào workflow, ngay cả khi active version đã thay đổi.
 
 Response detail:
 
@@ -196,10 +196,10 @@ Response detail:
 }
 ```
 
-## Luu y frontend
+## Lưu ý frontend
 
-- `GET /api/plugins/catalog` duoc cache trong plugin store.
+- `GET /api/plugins/catalog` được cache trong plugin store.
 - Node library map `icon` string sang Lucide component.
-- Node config panel uu tien detail API schema, sau do fallback sang catalog schema da luu trong node metadata.
-- Khi doi version Dynamic DLL, FE xoa input hien tai de tranh mismatch schema.
-- Dynamic select widget goi URL tu `x-data-source-url`; backend co the tra array truc tiep hoac `{ data: [...] }`.
+- Node config panel ưu tiên detail API schema, sau đó fallback sang catalog schema đã lưu trong node metadata.
+- Khi đổi version Dynamic DLL, FE xóa input hiện tại để tránh mismatch schema.
+- Dynamic select widget gọi URL từ `x-data-source-url`; backend có thể trả array trực tiếp hoặc `{ data: [...] }`.

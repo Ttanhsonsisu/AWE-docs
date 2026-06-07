@@ -87,4 +87,4 @@ Output cua plugin duoc tra qua `PluginResult.Success(outputs)`. Cac buoc sau co 
 
 ## Realtime va monitoring
 
-Runtime ghi execution log, status pointer va workflow instance. FE co cac panel execution/log va SignalR hook de cap nhat trang thai node khi workflow dang chay.
+Runtime ghi execution log, status pointer va workflow instance. FE có các panel execution/log và SignalR hook để cập nhật trạng thái node khi workflow đang chạy.
