@@ -247,6 +247,90 @@ OIDC_POST_LOGOUT_REDIRECT_URI=https://awe.example.com/
 
 Sau đó cập nhật client `awe-fe` trong Keycloak theo đúng domain HTTPS. Không công khai trực tiếp cổng PostgreSQL, Redis, RabbitMQ AMQP, MinIO API hoặc OTLP ra Internet. Chỉ mở các cổng thực sự cần thiết trên firewall.
 
+### Hướng dẫn cấu hình chi tiết với Cloudflare Tunnel
+
+Sử dụng Cloudflare Tunnel là giải pháp bảo mật, tối ưu và đơn giản nhất để triển khai AWE public ra ngoài Internet với HTTPS tự động mà không cần mở cổng (port forwarding) trên router hay cấu hình SSL/TLS thủ công qua Nginx/Caddy.
+
+Dưới đây là các bước thiết lập chi tiết:
+
+#### Bước 1: Tạo Tunnel trên Cloudflare Dashboard
+1. Truy cập vào **[Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/)**.
+2. Chọn **Networks** -> **Tunnels** từ menu bên trái và nhấn **Create a tunnel**.
+3. Chọn **Cloudflared** làm connector và nhấn **Next**.
+4. Đặt tên cho tunnel (ví dụ: `awe-selfhost-tunnel`) và nhấn **Save tunnel**.
+5. Tại phần **Install and run a connector**, chọn hệ điều hành là **Docker**.
+6. Sao chép token của bạn từ câu lệnh hiển thị trên màn hình. Token là chuỗi ký tự ngẫu nhiên rất dài nằm sau tham số `--token` (ví dụ: `eyJhIjoi...`).
+
+#### Bước 2: Cấu hình tệp `.env`
+Mở tệp `.env` trên máy chủ và cập nhật token đã sao chép:
+
+```dotenv
+CLOUDFLARE_TUNNEL_TOKEN=eyJhIjoi...
+```
+
+*Lưu ý:* Hãy chắc chắn rằng bạn không comment dịch vụ `cloudflare-tunnel` trong tệp `docker-compose.yml`.
+
+#### Bước 3: Định cấu hình Public Hostnames
+Trên giao diện quản lý Tunnel vừa tạo ở Cloudflare Dashboard, chuyển sang tab **Public Hostnames** để ánh xạ tên miền của bạn vào các container dịch vụ của AWE bên trong mạng Docker:
+
+1. **Cấu hình cho AWE Frontend:**
+   - **Subdomain/Domain:** Nhập tên miền phụ bạn muốn gán cho giao diện (ví dụ: `awe.yourdomain.com`).
+   - **Service Type:** Chọn `HTTP`.
+   - **URL:** Điền `frontend` (đây là tên service của Frontend trong mạng nội bộ của Docker Compose).
+
+2. **Cấu hình cho Keycloak (Identity Provider):**
+   - **Subdomain/Domain:** Nhập tên miền phụ cho dịch vụ xác thực (ví dụ: `auth.yourdomain.com`).
+   - **Service Type:** Chọn `HTTP`.
+   - **URL:** Điền `awe-keycloak:8080` (tên service Keycloak kèm cổng nội bộ 8080).
+
+*(Tùy chọn) Nếu bạn muốn truy cập các công cụ quản trị khác như Aspire Dashboard hoặc MinIO qua Internet, bạn có thể tạo thêm các Public Hostname tương tự gán về dịch vụ tương ứng, ví dụ `http://aspire-dashboard:18888` hoặc `http://minio:9001`.*
+
+#### Bước 4: Cấu hình biến môi trường Production
+Cập nhật các biến cấu hình trong `.env` để trỏ về các tên miền mới của bạn thay vì `localhost`:
+
+```dotenv
+ASPNETCORE_ENVIRONMENT=production
+
+# Địa chỉ Keycloak phục vụ cho việc đăng nhập từ trình duyệt của người dùng
+OIDC_AUTHORITY=https://auth.yourdomain.com/realms/awe-auth
+
+# Địa chỉ chuyển hướng sau khi đăng nhập/đăng xuất thành công
+OIDC_REDIRECT_URI=https://awe.yourdomain.com/
+OIDC_POST_LOGOUT_REDIRECT_URI=https://awe.yourdomain.com/
+
+# Giữ nguyên cấu hình API & SignalR trỏ tương đối theo Frontend
+FRONTEND_API_URL=/api
+FRONTEND_SIGNALR_URL=/hubs/workflow
+
+# ĐẶC BIỆT LƯU Ý: Giữ nguyên địa chỉ mạng nội bộ cho API Gateway kết nối đến Keycloak
+KEYCLOAK_INTERNAL_AUTHORITY=http://awe-keycloak:8080/realms/awe-auth
+```
+
+#### Bước 5: Cấu hình Keycloak Clients
+Truy cập vào trang quản trị Keycloak của bạn (lúc này đã hoạt động tại `https://auth.yourdomain.com`) và cập nhật cấu hình cho client **awe-fe**:
+1. Đăng nhập vào Realm **awe-auth** bằng tài khoản Admin.
+2. Điều hướng đến **Clients** -> **awe-fe**.
+3. Cập nhật các trường thông tin sau:
+   - **Valid redirect URIs:** `https://awe.yourdomain.com/*`
+   - **Valid post logout redirect URIs:** `https://awe.yourdomain.com/*`
+   - **Web origins:** `https://awe.yourdomain.com`
+4. Cuộn xuống và nhấn **Save**.
+
+#### Bước 6: Khởi động hệ thống
+Áp dụng cấu hình và khởi động lại các container:
+
+```bash
+docker compose up -d --force-recreate
+```
+
+Kiểm tra log của dịch vụ tunnel để đảm bảo kết nối thành công:
+
+```bash
+docker compose logs -f cloudflare-tunnel
+```
+
+Nếu màn hình hiển thị log kết nối thành công đến các edge server của Cloudflare mà không có lỗi, bạn có thể mở trình duyệt và truy cập vào `https://awe.yourdomain.com` để trải nghiệm hệ thống.
+
 :::info
 Các biến cấu hình frontend được ghi vào `config.js` khi container khởi động. Sau khi sửa `.env`, chỉ cần tạo lại container; không cần build lại frontend.
 :::
